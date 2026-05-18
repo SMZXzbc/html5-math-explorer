@@ -1,0 +1,2174 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>级数收敛性 · 沉浸式数学探索空间</title>
+    <script>
+        window.MathJax = {
+            tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] },
+            svg: { fontCache: 'global' }
+        };
+    </script>
+    <script async src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-svg.min.js"></script>
+    <style>
+        :root {
+            --bg-primary: #0a0e1a;
+            --bg-secondary: #111827;
+            --bg-card: #161f2e;
+            --bg-hover: #1e293b;
+            --text-primary: #f0f4f8;
+            --text-secondary: #94a3b8;
+            --accent-converge: #10b981;
+            --accent-diverge: #ef4444;
+            --accent-primary: #3b82f6;
+            --accent-warm: #f59e0b;
+            --border-color: #27354f;
+            --shadow-glow: 0 0 20px rgba(59, 130, 246, 0.15);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.7;
+            overflow-x: hidden;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg-primary);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--accent-primary);
+        }
+
+        /* Navigation */
+        .nav-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            background: rgba(10, 14, 26, 0.9);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-color);
+            padding: 0 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 60px;
+        }
+
+        .nav-brand {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--accent-primary);
+            letter-spacing: -0.5px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 8px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+            border: 1px solid transparent;
+        }
+
+        .nav-links a:hover, .nav-links a.active {
+            color: var(--text-primary);
+            background: var(--bg-hover);
+            border-color: var(--border-color);
+        }
+
+        .nav-progress {
+            position: fixed;
+            top: 60px;
+            left: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-converge));
+            z-index: 1001;
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 100px 24px 60px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            opacity: 0.6;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            max-width: 800px;
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin-bottom: 16px;
+            background: linear-gradient(135deg, var(--text-primary) 0%, var(--accent-primary) 50%, var(--accent-converge) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -1px;
+        }
+
+        .hero-subtitle {
+            font-size: 1.3rem;
+            color: var(--text-secondary);
+            margin-bottom: 32px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .hero-formula {
+            font-size: 1.5rem;
+            color: var(--accent-warm);
+            margin: 24px 0;
+            font-family: 'Cambria Math', 'Times New Roman', serif;
+        }
+
+        .scroll-indicator {
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            animation: bounce 2s infinite;
+            cursor: pointer;
+            z-index: 2;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateX(-50%) translateY(0); }
+            40% { transform: translateX(-50%) translateY(-12px); }
+            60% { transform: translateX(-50%) translateY(-6px); }
+        }
+
+        /* Section Styles */
+        section {
+            padding: 80px 24px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 48px;
+        }
+
+        .section-tag {
+            display: inline-block;
+            padding: 4px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+        }
+
+        .tag-blue { background: rgba(59, 130, 246, 0.15); color: var(--accent-primary); }
+        .tag-green { background: rgba(16, 185, 129, 0.15); color: var(--accent-converge); }
+        .tag-red { background: rgba(239, 68, 68, 0.15); color: var(--accent-diverge); }
+        .tag-warm { background: rgba(245, 158, 11, 0.15); color: var(--accent-warm); }
+
+        .section-title {
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .section-desc {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        /* Cards */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 32px;
+            margin-bottom: 24px;
+            transition: all 0.3s;
+        }
+
+        .card:hover {
+            border-color: var(--accent-primary);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .card-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-title .icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+        }
+
+        /* Interactive Lab */
+        .lab-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-top: 32px;
+        }
+
+        @media (max-width: 900px) {
+            .lab-container { grid-template-columns: 1fr; }
+            .hero h1 { font-size: 2rem; }
+            .nav-links { display: none; }
+        }
+
+        .lab-panel {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .lab-panel-header {
+            padding: 16px 24px;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .lab-panel-body {
+            padding: 24px;
+        }
+
+        canvas.lab-canvas {
+            width: 100%;
+            height: 320px;
+            background: var(--bg-primary);
+            border-radius: 8px;
+        }
+
+        /* Controls */
+        .control-group {
+            margin-bottom: 20px;
+        }
+
+        .control-label {
+            display: block;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        input[type="range"] {
+            flex: 1;
+            -webkit-appearance: none;
+            height: 6px;
+            background: var(--bg-hover);
+            border-radius: 3px;
+            outline: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            background: var(--accent-primary);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+            box-shadow: 0 0 10px var(--accent-primary);
+        }
+
+        .slider-value {
+            min-width: 60px;
+            text-align: center;
+            font-family: 'Consolas', monospace;
+            font-size: 0.95rem;
+            color: var(--accent-primary);
+            font-weight: 600;
+        }
+
+        .btn {
+            padding: 10px 24px;
+            border-radius: 8px;
+            border: none;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: var(--accent-primary);
+            color: white;
+        }
+        .btn-primary:hover {
+            background: #2563eb;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+        }
+        .btn-outline:hover {
+            border-color: var(--accent-primary);
+            color: var(--text-primary);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 16px;
+            flex-wrap: wrap;
+        }
+
+        /* Status indicator */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .status-converge {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--accent-converge);
+        }
+
+        .status-diverge {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--accent-diverge);
+        }
+
+        /* Formula display */
+        .formula-box {
+            background: var(--bg-primary);
+            border: 1px dashed var(--border-color);
+            border-radius: 12px;
+            padding: 24px;
+            text-align: center;
+            margin: 20px 0;
+            font-size: 1.3rem;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-top: 24px;
+        }
+
+        .info-item {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 24px;
+            border-left: 4px solid var(--accent-primary);
+        }
+
+        .info-item.danger { border-left-color: var(--accent-diverge); }
+        .info-item.success { border-left-color: var(--accent-converge); }
+        .info-item.warm { border-left-color: var(--accent-warm); }
+
+        .info-item h4 {
+            margin-bottom: 8px;
+            font-size: 1.05rem;
+        }
+
+        .info-item p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        /* Test section */
+        .quiz-container {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .quiz-question {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 28px;
+            margin-bottom: 20px;
+        }
+
+        .quiz-question h4 {
+            margin-bottom: 16px;
+            font-size: 1.1rem;
+        }
+
+        .quiz-options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .quiz-option {
+            padding: 14px 18px;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.25s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .quiz-option:hover {
+            background: var(--bg-hover);
+            border-color: var(--accent-primary);
+        }
+
+        .quiz-option.selected {
+            border-color: var(--accent-primary);
+            background: rgba(59, 130, 246, 0.1);
+        }
+
+        .quiz-option.correct {
+            border-color: var(--accent-converge);
+            background: rgba(16, 185, 129, 0.1);
+        }
+
+        .quiz-option.wrong {
+            border-color: var(--accent-diverge);
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        .quiz-option .opt-letter {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: var(--bg-hover);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .quiz-result {
+            text-align: center;
+            padding: 40px;
+            display: none;
+        }
+
+        .quiz-result.show {
+            display: block;
+        }
+
+        .result-score {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+
+        .result-message {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+        }
+
+        /* Floating particles background */
+        .particles-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 40px 24px;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        /* Animation */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-in {
+            animation: fadeInUp 0.8s ease forwards;
+        }
+
+        .delay-1 { animation-delay: 0.1s; }
+        .delay-2 { animation-delay: 0.2s; }
+        .delay-3 { animation-delay: 0.3s; }
+
+        /* Tooltip for math */
+        .math-hint {
+            position: relative;
+            cursor: help;
+            border-bottom: 1px dotted var(--text-secondary);
+        }
+
+        /* Comparison bars */
+        .compare-bar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 8px 0;
+        }
+        .compare-label {
+            min-width: 80px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+        .compare-track {
+            flex: 1;
+            height: 24px;
+            background: var(--bg-primary);
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+        }
+        .compare-fill {
+            height: 100%;
+            border-radius: 12px;
+            transition: width 0.5s ease;
+        }
+        .compare-value {
+            min-width: 50px;
+            text-align: right;
+            font-family: monospace;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Progress Bar -->
+    <div class="nav-progress" id="navProgress"></div>
+
+    <!-- Navigation -->
+    <nav class="nav-bar">
+        <div class="nav-brand">∑ 级数收敛性</div>
+        <ul class="nav-links">
+            <li><a href="#hero" class="active">首页</a></li>
+            <li><a href="#concept">核心概念</a></li>
+            <li><a href="#geometric">几何级数</a></li>
+            <li><a href="#p-series">p-级数</a></li>
+            <li><a href="#alternating">交错级数</a></li>
+            <li><a href="#tests">判别法</a></li>
+            <li><a href="#quiz">自测</a></li>
+        </ul>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero" id="hero">
+        <canvas class="hero-canvas" id="heroCanvas"></canvas>
+        <div class="hero-content animate-in">
+            <div class="hero-formula">
+                $$ S = \sum_{n=1}^{\infty} a_n = a_1 + a_2 + a_3 + \cdots $$
+            </div>
+            <h1>级数收敛性</h1>
+            <p class="hero-subtitle">
+                探索无穷求和的奥秘，从几何级数到交错级数，<br>
+                在交互式可视化中直观感受收敛与发散的本质。
+            </p>
+            <div class="btn-group" style="justify-content: center;">
+                <a href="#concept" class="btn btn-primary">开始探索</a>
+                <a href="#geometric" class="btn btn-outline">进入实验室</a>
+            </div>
+        </div>
+        <a href="#concept" class="scroll-indicator">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--text-secondary);">
+                <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+        </a>
+    </section>
+
+    <!-- Core Concepts -->
+    <section id="concept">
+        <div class="section-header animate-in">
+            <span class="section-tag tag-blue">基础篇</span>
+            <h2 class="section-title">核心概念：何为级数收敛？</h2>
+            <p class="section-desc">
+                级数是无穷多个数的求和。收敛性描述了这种"无限累加"是否趋近于一个确定的有限值。
+            </p>
+        </div>
+
+        <div class="card animate-in delay-1">
+            <div class="card-title">
+                <span class="icon" style="background: rgba(59,130,246,0.15); color: var(--accent-primary);">📐</span>
+                定义：无穷级数与其部分和
+            </div>
+            <p style="color: var(--text-secondary); margin-bottom: 16px;">
+                给定一个数列 $\{a_n\}$，将其各项依次相加所形成的表达式称为<b>无穷级数</b>：
+            </p>
+            <div class="formula-box">
+                $$ \sum_{n=1}^{\infty} a_n = a_1 + a_2 + a_3 + \cdots $$
+            </div>
+            <p style="color: var(--text-secondary); margin-bottom: 16px;">
+                定义<b>部分和</b> $S_N = a_1 + a_2 + \cdots + a_N$。若极限 $\displaystyle\lim_{N\to\infty} S_N = S$ 存在且有限，则称级数<b>收敛</b>于 $S$；否则称其<b>发散</b>。
+            </p>
+            <div class="info-grid">
+                <div class="info-item success">
+                    <h4>收敛的必要条件</h4>
+                    <p>若级数收敛，则必有 $\displaystyle\lim_{n\to\infty} a_n = 0$。<br>注意：反之不成立！</p>
+                </div>
+                <div class="info-item danger">
+                    <h4>发散的充分条件</h4>
+                    <p>若 $\displaystyle\lim_{n\to\infty} a_n \neq 0$，则级数必定发散。<br>这是判断发散最快捷的方法。</p>
+                </div>
+                <div class="info-item warm">
+                    <h4>几何直观</h4>
+                    <p>想象你在数轴上跳跃：每一步的大小是 $a_n$。如果级数收敛，你最终会停在某个确定的点上。</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="card animate-in delay-2">
+            <div class="card-title">
+                <span class="icon" style="background: rgba(245,158,11,0.15); color: var(--accent-warm);">🎯</span>
+                可视化：部分和数列的动态行为
+            </div>
+            <canvas class="lab-canvas" id="partialSumCanvas" height="300"></canvas>
+            <div class="btn-group" style="justify-content: center; margin-top: 16px;">
+                <button class="btn btn-outline" onclick="drawPartialSum('geometric')">几何级数 ($r=0.5$)</button>
+                <button class="btn btn-outline" onclick="drawPartialSum('harmonic')">调和级数 ($p=1$)</button>
+                <button class="btn btn-outline" onclick="drawPartialSum('pseries')">p-级数 ($p=2$)</button>
+            </div>
+            <p style="text-align: center; color: var(--text-secondary); margin-top: 12px; font-size: 0.9rem;">
+                点击按钮观察不同级数部分和数列的收敛/发散行为
+            </p>
+        </div>
+    </section>
+
+    <!-- Geometric Series Lab -->
+    <section id="geometric" style="background: var(--bg-secondary); margin: 0; max-width: none; padding: 80px 24px;">
+        <div style="max-width: 1200px; margin: 0 auto;">
+            <div class="section-header animate-in">
+                <span class="section-tag tag-green">实验室 I</span>
+                <h2 class="section-title">几何级数交互实验室</h2>
+                <p class="section-desc">
+                    几何级数 $\sum ar^{n-1}$ 是最基础也最重要的级数之一。拖动滑块改变公比 $r$，观察收敛与发散的临界现象。
+                </p>
+            </div>
+
+            <div class="lab-container">
+                <div class="lab-panel animate-in delay-1">
+                    <div class="lab-panel-header">
+                        <span>参数控制</span>
+                        <span id="geoStatus" class="status-badge status-converge">收敛</span>
+                    </div>
+                    <div class="lab-panel-body">
+                        <div class="formula-box" style="font-size: 1.1rem;">
+                            $$ \sum_{n=0}^{\infty} ar^n = \frac{a}{1-r} \quad (|r| < 1) $$
+                        </div>
+
+                        <div class="control-group">
+                            <label class="control-label">首项 $a$</label>
+                            <div class="slider-container">
+                                <input type="range" id="geoA" min="0.5" max="5" step="0.5" value="1" oninput="updateGeoLab()">
+                                <span class="slider-value" id="geoAVal">1</span>
+                            </div>
+                        </div>
+
+                        <div class="control-group">
+                            <label class="control-label">公比 $r$</label>
+                            <div class="slider-container">
+                                <input type="range" id="geoR" min="-1.5" max="1.5" step="0.01" value="0.5" oninput="updateGeoLab()">
+                                <span class="slider-value" id="geoRVal">0.5</span>
+                            </div>
+                        </div>
+
+                        <div class="control-group">
+                            <label class="control-label">项数 $N$</label>
+                            <div class="slider-container">
+                                <input type="range" id="geoN" min="5" max="100" step="1" value="20" oninput="updateGeoLab()">
+                                <span class="slider-value" id="geoNVal">20</span>
+                            </div>
+                        </div>
+
+                        <div class="info-grid" style="margin-top: 20px;">
+                            <div class="info-item" style="border-left-color: var(--accent-primary);">
+                                <h4>级数和公式</h4>
+                                <p id="geoSum">$S = \frac{1}{1-0.5} = 2.000$</p>
+                            </div>
+                            <div class="info-item" style="border-left-color: var(--accent-warm);">
+                                <h4>部分和 $S_N$</h4>
+                                <p id="geoPartial">$S_{20} = 2.000$</p>
+                            </div>
+                        </div>
+
+                        <p style="margin-top: 16px; color: var(--text-secondary); font-size: 0.9rem;">
+                            <b>提示：</b> 当 $|r| \geq 1$ 时级数发散；$r = 1$ 时发散到 $+\infty$；$r \leq -1$ 时振荡发散。
+                        </p>
+                    </div>
+                </div>
+
+                <div class="lab-panel animate-in delay-2">
+                    <div class="lab-panel-header">
+                        <span>实时可视化</span>
+                        <span style="font-size: 0.85rem; color: var(--text-secondary);">条形图 + 部分和曲线</span>
+                    </div>
+                    <div class="lab-panel-body" style="padding: 16px;">
+                        <canvas class="lab-canvas" id="geoCanvas" height="380"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- P-Series Exploration -->
+    <section id="p-series">
+        <div class="section-header animate-in">
+            <span class="section-tag tag-warm">实验室 II</span>
+            <h2 class="section-title">p-级数探索：p 的魔力</h2>
+            <p class="section-desc">
+                p-级数 $\sum \frac{1}{n^p}$ 的收敛性完全由指数 $p$ 决定。探索 $p$ 如何控制级数的命运。
+            </p>
+        </div>
+
+        <div class="lab-container">
+            <div class="lab-panel animate-in delay-1">
+                <div class="lab-panel-header">
+                    <span>参数控制</span>
+                    <span id="pStatus" class="status-badge status-converge">收敛 (p > 1)</span>
+                </div>
+                <div class="lab-panel-body">
+                    <div class="formula-box" style="font-size: 1.2rem;">
+                        $$ \sum_{n=1}^{\infty} \frac{1}{n^p} = \frac{1}{1^p} + \frac{1}{2^p} + \frac{1}{3^p} + \cdots $$
+                    </div>
+
+                    <div class="control-group">
+                        <label class="control-label">指数 $p$</label>
+                        <div class="slider-container">
+                            <input type="range" id="pVal" min="0.1" max="3" step="0.1" value="2" oninput="updatePLab()">
+                            <span class="slider-value" id="pDisplay">2.0</span>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <label class="control-label">显示项数 $N$</label>
+                        <div class="slider-container">
+                            <input type="range" id="pN" min="10" max="200" step="10" value="50" oninput="updatePLab()">
+                            <span class="slider-value" id="pNVal">50</span>
+                        </div>
+                    </div>
+
+                    <div class="info-grid" style="margin-top: 20px;">
+                        <div class="info-item success" id="pInfoConverge">
+                            <h4>收敛情况</h4>
+                            <p>当 $p > 1$ 时，级数收敛。著名的 Basel 问题：$\sum \frac{1}{n^2} = \frac{\pi^2}{6}$</p>
+                        </div>
+                        <div class="info-item danger" id="pInfoDiverge" style="display: none;">
+                            <h4>发散情况</h4>
+                            <p>当 $p \leq 1$ 时，级数发散。$p=1$ 即为调和级数，虽然通项趋于0，但和却可以无限大！</p>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 16px;">
+                        <div class="compare-bar">
+                            <span class="compare-label">调和 $p=1$</span>
+                            <div class="compare-track">
+                                <div class="compare-fill" style="width: 100%; background: var(--accent-diverge);"></div>
+                            </div>
+                            <span class="compare-value" style="color: var(--accent-diverge);">∞</span>
+                        </div>
+                        <div class="compare-bar">
+                            <span class="compare-label">当前 $p$</span>
+                            <div class="compare-track">
+                                <div class="compare-fill" id="pBar" style="width: 60%; background: var(--accent-converge);"></div>
+                            </div>
+                            <span class="compare-value" id="pBarVal">收敛</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="lab-panel animate-in delay-2">
+                <div class="lab-panel-header">
+                    <span>可视化：通项与部分和</span>
+                </div>
+                <div class="lab-panel-body" style="padding: 16px;">
+                    <canvas class="lab-canvas" id="pCanvas" height="380"></canvas>
+                    <p style="text-align: center; color: var(--text-secondary); font-size: 0.85rem; margin-top: 8px;">
+                        上图：通项 $a_n = 1/n^p$ 的衰减曲线 | 下图：部分和 $S_N$ 的增长趋势
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Alternating Series -->
+    <section id="alternating" style="background: var(--bg-secondary); margin: 0; max-width: none; padding: 80px 24px;">
+        <div style="max-width: 1200px; margin: 0 auto;">
+            <div class="section-header animate-in">
+                <span class="section-tag tag-green">实验室 III</span>
+                <h2 class="section-title">交错级数：莱布尼茨的舞蹈</h2>
+                <p class="section-desc">
+                    交错级数各项正负交替，其收敛条件由<b>莱布尼茨判别法</b>优雅地刻画。观察部分和如何在真实值两侧"舞蹈"逼近极限。
+                </p>
+            </div>
+
+            <div class="lab-container">
+                <div class="lab-panel animate-in delay-1">
+                    <div class="lab-panel-header">
+                        <span>莱布尼茨判别法</span>
+                        <span id="altStatus" class="status-badge status-converge">满足条件 · 收敛</span>
+                    </div>
+                    <div class="lab-panel-body">
+                        <div class="formula-box" style="font-size: 1.1rem;">
+                            $$ \sum_{n=1}^{\infty} (-1)^{n+1} b_n \quad (b_n > 0) $$
+                        </div>
+                        <p style="color: var(--text-secondary); margin-bottom: 16px;">
+                            若满足：$(1)\ b_n \geq b_{n+1}$（单调递减）；$(2)\ \lim b_n = 0$，则级数收敛。
+                        </p>
+
+                        <div class="control-group">
+                            <label class="control-label">选择级数类型</label>
+                            <div class="btn-group">
+                                <button class="btn btn-primary" id="btnAlt1" onclick="setAltType('harmonic')">交错调和</button>
+                                <button class="btn btn-outline" id="btnAlt2" onclick="setAltType('geometric')">交错几何</button>
+                                <button class="btn btn-outline" id="btnAlt3" onclick="setAltType('custom')">自定义</button>
+                            </div>
+                        </div>
+
+                        <div class="control-group" id="altCustomControls" style="display: none;">
+                            <label class="control-label">衰减指数 $k$</label>
+                            <div class="slider-container">
+                                <input type="range" id="altK" min="0.1" max="2" step="0.1" value="1" oninput="updateAltLab()">
+                                <span class="slider-value" id="altKVal">1.0</span>
+                            </div>
+                        </div>
+
+                        <div class="control-group">
+                            <label class="control-label">显示项数 $N$</label>
+                            <div class="slider-container">
+                                <input type="range" id="altN" min="5" max="100" step="1" value="30" oninput="updateAltLab()">
+                                <span class="slider-value" id="altNVal">30</span>
+                            </div>
+                        </div>
+
+                        <div class="info-grid" style="margin-top: 20px;">
+                            <div class="info-item" style="border-left-color: var(--accent-warm);">
+                                <h4>截断误差估计</h4>
+                                <p id="altError">$|R_N| \leq b_{31} = 0.032$</p>
+                            </div>
+                            <div class="info-item success">
+                                <h4>部分和区间</h4>
+                                <p id="altBound">$S_{30} \approx 0.683$，真实值在 $0.683 \pm 0.032$ 内</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="lab-panel animate-in delay-2">
+                    <div class="lab-panel-header">
+                        <span>逼近可视化</span>
+                        <span style="font-size: 0.85rem; color: var(--text-secondary);">部分和在极限值两侧交替</span>
+                    </div>
+                    <div class="lab-panel-body" style="padding: 16px;">
+                        <canvas class="lab-canvas" id="altCanvas" height="380"></canvas>
+                        <p style="text-align: center; color: var(--text-secondary); font-size: 0.85rem; margin-top: 8px;">
+                            绿色区域 = 误差界 | 红线 = 部分和轨迹 | 白虚线 = 极限值
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Convergence Tests -->
+    <section id="tests">
+        <div class="section-header animate-in">
+            <span class="section-tag tag-blue">工具箱</span>
+            <h2 class="section-title">收敛判别法交互工具箱</h2>
+            <p class="section-desc">
+                掌握判别法是分析级数收敛性的核心能力。通过交互演示理解每种判别法的原理与适用场景。
+            </p>
+        </div>
+
+        <div class="info-grid" style="margin-bottom: 40px;">
+            <div class="card animate-in delay-1" style="margin-bottom: 0;">
+                <div class="card-title">
+                    <span class="icon" style="background: rgba(59,130,246,0.15); color: var(--accent-primary);">📊</span>
+                    比较判别法
+                </div>
+                <p style="color: var(--text-secondary); margin-bottom: 12px;">
+                    通过与已知级数比较来判断收敛性。
+                </p>
+                <div class="formula-box" style="font-size: 1rem; padding: 16px;">
+                    若 $0 \leq a_n \leq b_n$：<br>
+                    $\sum b_n$ 收敛 $\Rightarrow$ $\sum a_n$ 收敛<br>
+                    $\sum a_n$ 发散 $\Rightarrow$ $\sum b_n$ 发散
+                </div>
+                <div style="margin-top: 12px; padding: 12px; background: var(--bg-primary); border-radius: 8px;">
+                    <label style="font-size: 0.85rem; color: var(--text-secondary);">演示：将 $a_n = \frac{1}{n^2+1}$ 与 $b_n = \frac{1}{n^2}$ 比较</label>
+                    <div class="btn-group" style="margin-top: 8px;">
+                        <button class="btn btn-primary" onclick="showComparisonDemo()">运行演示</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card animate-in delay-2" style="margin-bottom: 0;">
+                <div class="card-title">
+                    <span class="icon" style="background: rgba(16,185,129,0.15); color: var(--accent-converge);">⚖️</span>
+                    比值判别法
+                </div>
+                <p style="color: var(--text-secondary); margin-bottom: 12px;">
+                    通过相邻项之比的极限判断收敛性，特别适用于含阶乘或指数的级数。
+                </p>
+                <div class="formula-box" style="font-size: 1rem; padding: 16px;">
+                    $$ L = \lim_{n\to\infty} \left| \frac{a_{n+1}}{a_n} \right| $$
+                    $L < 1$：收敛 &nbsp;|&nbsp; $L > 1$：发散 &nbsp;|&nbsp; $L = 1$：不确定
+                </div>
+                <div style="margin-top: 12px; padding: 12px; background: var(--bg-primary); border-radius: 8px;">
+                    <label style="font-size: 0.85rem; color: var(--text-secondary);">演示：$\sum \frac{2^n}{n!}$ 的比值分析</label>
+                    <div class="btn-group" style="margin-top: 8px;">
+                        <button class="btn btn-primary" onclick="showRatioDemo()">运行演示</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card animate-in delay-3" style="margin-bottom: 0;">
+                <div class="card-title">
+                    <span class="icon" style="background: rgba(245,158,11,0.15); color: var(--accent-warm);">🌿</span>
+                    根值判别法
+                </div>
+                <p style="color: var(--text-secondary); margin-bottom: 12px;">
+                    通过通项的 $n$ 次方根的极限判断收敛性，适用于通项为 $n$ 次幂的形式。
+                </p>
+                <div class="formula-box" style="font-size: 1rem; padding: 16px;">
+                    $$ L = \lim_{n\to\infty} \sqrt[n]{|a_n|} $$
+                    $L < 1$：收敛 &nbsp;|&nbsp; $L > 1$：发散 &nbsp;|&nbsp; $L = 1$：不确定
+                </div>
+                <div style="margin-top: 12px; padding: 12px; background: var(--bg-primary); border-radius: 8px;">
+                    <label style="font-size: 0.85rem; color: var(--text-secondary);">演示：$\sum \left(\frac{n}{2n+1}\right)^n$ 的根值分析</label>
+                    <div class="btn-group" style="margin-top: 8px;">
+                        <button class="btn btn-primary" onclick="showRootDemo()">运行演示</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Demo Canvas Area -->
+        <div class="card animate-in" id="testDemoCard" style="display: none;">
+            <div class="card-title" id="testDemoTitle">判别法演示</div>
+            <canvas class="lab-canvas" id="testCanvas" height="350"></canvas>
+            <p style="text-align: center; color: var(--text-secondary); font-size: 0.9rem; margin-top: 12px;" id="testDemoDesc"></p>
+        </div>
+
+        <div class="card animate-in delay-2">
+            <div class="card-title">
+                <span class="icon" style="background: rgba(239,68,68,0.15); color: var(--accent-diverge);">🧭</span>
+                判别法选择决策树
+            </div>
+            <div style="background: var(--bg-primary); border-radius: 12px; padding: 28px; text-align: center;">
+                <div style="display: flex; flex-direction: column; align-items: center; gap: 16px;">
+                    <div style="background: var(--bg-card); padding: 14px 28px; border-radius: 10px; border: 2px solid var(--accent-primary); max-width: 500px; width: 100%;">
+                        <b>第一步</b><br>
+                        <span style="color: var(--text-secondary); font-size: 0.9rem;">检查通项极限：$\lim a_n = 0$？</span>
+                        <div style="display: flex; gap: 16px; justify-content: center; margin-top: 10px;">
+                            <span style="color: var(--accent-diverge);">否 → 发散！</span>
+                            <span style="color: var(--accent-converge);">是 → 继续</span>
+                        </div>
+                    </div>
+                    <div style="font-size: 1.5rem; color: var(--text-secondary);">↓</div>
+                    <div style="display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; width: 100%;">
+                        <div style="background: var(--bg-card); padding: 14px 20px; border-radius: 10px; border: 2px solid var(--accent-warm); flex: 1; min-width: 200px; max-width: 300px;">
+                            <b>交错级数？</b><br>
+                            <span style="color: var(--text-secondary); font-size: 0.85rem;">莱布尼茨判别法</span>
+                        </div>
+                        <div style="background: var(--bg-card); padding: 14px 20px; border-radius: 10px; border: 2px solid var(--accent-converge); flex: 1; min-width: 200px; max-width: 300px;">
+                            <b>含 $n!$ 或 $a^n$？</b><br>
+                            <span style="color: var(--text-secondary); font-size: 0.85rem;">比值判别法</span>
+                        </div>
+                        <div style="background: var(--bg-card); padding: 14px 20px; border-radius: 10px; border: 2px solid var(--accent-primary); flex: 1; min-width: 200px; max-width: 300px;">
+                            <b>含 $n$ 次幂？</b><br>
+                            <span style="color: var(--text-secondary); font-size: 0.85rem;">根值判别法</span>
+                        </div>
+                        <div style="background: var(--bg-card); padding: 14px 20px; border-radius: 10px; border: 2px solid #a78bfa; flex: 1; min-width: 200px; max-width: 300px;">
+                            <b>有理函数形式？</b><br>
+                            <span style="color: var(--text-secondary); font-size: 0.85rem;">比较/极限比较判别法</span>
+                        </div>
+                    </div>
+                    <div style="font-size: 1.5rem; color: var(--text-secondary);">↓</div>
+                    <div style="background: var(--bg-card); padding: 14px 28px; border-radius: 10px; border: 2px solid var(--accent-converge); max-width: 500px; width: 100%;">
+                        <b>最终验证</b><br>
+                        <span style="color: var(--text-secondary); font-size: 0.9rem;">若判别法给出 $L=1$ 或不确定，尝试其他方法或利用级数性质</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Quiz Section -->
+    <section id="quiz" style="background: var(--bg-secondary); margin: 0; max-width: none; padding: 80px 24px;">
+        <div style="max-width: 800px; margin: 0 auto;">
+            <div class="section-header animate-in">
+                <span class="section-tag tag-green">自主检测</span>
+                <h2 class="section-title">知识掌握自测</h2>
+                <p class="section-desc">
+                    通过 8 道精选练习题检验你对级数收敛性的理解程度。
+                </p>
+            </div>
+
+            <div class="quiz-container" id="quizContainer">
+                <!-- Questions generated by JS -->
+            </div>
+
+            <div style="text-align: center; margin-top: 24px;">
+                <button class="btn btn-primary" id="submitQuiz" onclick="submitQuiz()" style="padding: 12px 36px; font-size: 1rem;">
+                    提交答案
+                </button>
+                <button class="btn btn-outline" id="retryQuiz" onclick="retryQuiz()" style="display: none; margin-left: 12px;">
+                    重新测试
+                </button>
+            </div>
+
+            <div class="quiz-result" id="quizResult">
+                <div class="result-score" id="resultScore"></div>
+                <p class="result-message" id="resultMessage"></p>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <p>级数收敛性 · 沉浸式数学学习空间 | 基于 HTML5 + Canvas + MathJax 构建</p>
+        <p style="margin-top: 8px; font-size: 0.85rem; opacity: 0.7;">
+            推荐使用 Chrome / Edge / Firefox 最新版本获得最佳体验
+        </p>
+    </footer>
+
+
+    <!-- JavaScript -->
+    <script>
+        // ==========================================
+        // Utility Functions
+        // ==========================================
+        const $ = (id) => document.getElementById(id);
+        const lerp = (a, b, t) => a + (b - a) * t;
+
+        // Color helpers
+        const hexToRgb = (hex) => {
+            const n = parseInt(hex.slice(1), 16);
+            return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+        };
+
+        const rgb = (hex) => hexToRgb(hex);
+
+        // ==========================================
+        // Hero Canvas Animation: Falling Bars
+        // ==========================================
+        const heroCanvas = $('heroCanvas');
+        const heroCtx = heroCanvas.getContext('2d');
+        let heroW, heroH;
+
+        function resizeHero() {
+            heroW = heroCanvas.width = window.innerWidth;
+            heroH = heroCanvas.height = window.innerHeight;
+        }
+        resizeHero();
+        window.addEventListener('resize', resizeHero);
+
+        class HeroBar {
+            constructor() {
+                this.reset();
+                this.y = Math.random() * heroH; // start anywhere
+            }
+            reset() {
+                this.x = Math.random() * heroW;
+                this.y = -Math.random() * 100;
+                this.w = 2 + Math.random() * 3;
+                this.h = 20 + Math.random() * 80;
+                this.speed = 0.5 + Math.random() * 1.5;
+                this.opacity = 0.1 + Math.random() * 0.3;
+                this.hue = Math.random() > 0.5 ? 210 : 160; // blue or teal
+            }
+            update() {
+                this.y += this.speed;
+                if (this.y > heroH) this.reset();
+            }
+            draw(ctx) {
+                ctx.fillStyle = `hsla(${this.hue}, 70%, 60%, ${this.opacity})`;
+                ctx.fillRect(this.x, this.y, this.w, this.h);
+            }
+        }
+
+        const heroBars = Array.from({ length: 80 }, () => new HeroBar());
+
+        function animateHero() {
+            heroCtx.clearRect(0, 0, heroW, heroH);
+            // Draw subtle grid
+            heroCtx.strokeStyle = 'rgba(59, 130, 246, 0.04)';
+            heroCtx.lineWidth = 1;
+            for (let x = 0; x < heroW; x += 40) {
+                heroCtx.beginPath();
+                heroCtx.moveTo(x, 0);
+                heroCtx.lineTo(x, heroH);
+                heroCtx.stroke();
+            }
+            for (let y = 0; y < heroH; y += 40) {
+                heroCtx.beginPath();
+                heroCtx.moveTo(0, y);
+                heroCtx.lineTo(heroW, y);
+                heroCtx.stroke();
+            }
+            heroBars.forEach(b => { b.update(); b.draw(heroCtx); });
+            requestAnimationFrame(animateHero);
+        }
+        animateHero();
+
+        // ==========================================
+        // Navigation & Scroll Progress
+        // ==========================================
+        const navProgress = $('navProgress');
+        const navLinks = document.querySelectorAll('.nav-links a');
+
+        function updateScrollProgress() {
+            const scrollTop = window.scrollY;
+            const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+            const pct = (scrollTop / docHeight) * 100;
+            navProgress.style.width = pct + '%';
+
+            // Active link
+            const sections = ['hero', 'concept', 'geometric', 'p-series', 'alternating', 'tests', 'quiz'];
+            let current = sections[0];
+            for (const id of sections) {
+                const el = $(id);
+                if (el && el.getBoundingClientRect().top <= 120) {
+                    current = id;
+                }
+            }
+            navLinks.forEach(a => {
+                a.classList.toggle('active', a.getAttribute('href') === '#' + current);
+            });
+        }
+        window.addEventListener('scroll', updateScrollProgress);
+
+        // ==========================================
+        // Partial Sum Visualization
+        // ==========================================
+        const psCanvas = $('partialSumCanvas');
+        const psCtx = psCanvas.getContext('2d');
+        let psType = 'geometric';
+
+        function resizePS() {
+            const rect = psCanvas.parentElement.getBoundingClientRect();
+            psCanvas.width = rect.width - 32;
+            psCanvas.height = 300;
+        }
+
+        function drawPartialSum(type) {
+            psType = type;
+            resizePS();
+            const w = psCanvas.width, h = psCanvas.height;
+            psCtx.clearRect(0, 0, w, h);
+
+            const pad = { l: 50, r: 20, t: 30, b: 40 };
+            const gw = w - pad.l - pad.r;
+            const gh = h - pad.t - pad.b;
+
+            let terms = [];
+            let partial = [];
+            let N = 50;
+            let converges = false;
+            let limit = 0;
+
+            if (type === 'geometric') {
+                const r = 0.5, a = 1;
+                converges = true; limit = a / (1 - r);
+                for (let n = 0; n < N; n++) {
+                    terms.push(a * Math.pow(r, n));
+                    partial.push(partial.length ? partial[partial.length - 1] + terms[n] : terms[n]);
+                }
+            } else if (type === 'harmonic') {
+                converges = false;
+                for (let n = 1; n <= N; n++) {
+                    terms.push(1 / n);
+                    partial.push(partial.length ? partial[partial.length - 1] + terms[n] : terms[n]);
+                }
+            } else if (type === 'pseries') {
+                const p = 2;
+                converges = true; limit = Math.PI * Math.PI / 6;
+                for (let n = 1; n <= N; n++) {
+                    terms.push(1 / Math.pow(n, p));
+                    partial.push(partial.length ? partial[partial.length - 1] + terms[n] : terms[n]);
+                }
+            }
+
+            // Determine scale
+            const maxVal = Math.max(...partial, limit) * 1.1;
+            const minVal = 0;
+
+            // Draw grid
+            psCtx.strokeStyle = 'rgba(148, 163, 184, 0.15)';
+            psCtx.lineWidth = 1;
+            for (let i = 0; i <= 5; i++) {
+                const y = pad.t + gh * (i / 5);
+                psCtx.beginPath();
+                psCtx.moveTo(pad.l, y);
+                psCtx.lineTo(pad.l + gw, y);
+                psCtx.stroke();
+                psCtx.fillStyle = 'rgba(148, 163, 184, 0.5)';
+                psCtx.font = '11px sans-serif';
+                psCtx.textAlign = 'right';
+                const val = maxVal * (1 - i / 5);
+                psCtx.fillText(val.toFixed(1), pad.l - 8, y + 4);
+            }
+
+            // Axes
+            psCtx.strokeStyle = 'rgba(148, 163, 184, 0.4)';
+            psCtx.beginPath();
+            psCtx.moveTo(pad.l, pad.t);
+            psCtx.lineTo(pad.l, pad.t + gh);
+            psCtx.lineTo(pad.l + gw, pad.t + gh);
+            psCtx.stroke();
+
+            // Labels
+            psCtx.fillStyle = 'rgba(148, 163, 184, 0.7)';
+            psCtx.textAlign = 'center';
+            psCtx.fillText('N (项数)', pad.l + gw / 2, h - 8);
+            psCtx.save();
+            psCtx.translate(14, pad.t + gh / 2);
+            psCtx.rotate(-Math.PI / 2);
+            psCtx.fillText('部分和 S_N', 0, 0);
+            psCtx.restore();
+
+            // Draw limit line
+            if (converges) {
+                const ly = pad.t + gh * (1 - limit / maxVal);
+                psCtx.strokeStyle = 'rgba(16, 185, 129, 0.6)';
+                psCtx.setLineDash([6, 4]);
+                psCtx.beginPath();
+                psCtx.moveTo(pad.l, ly);
+                psCtx.lineTo(pad.l + gw, ly);
+                psCtx.stroke();
+                psCtx.setLineDash([]);
+                psCtx.fillStyle = '#10b981';
+                psCtx.font = 'bold 12px sans-serif';
+                psCtx.textAlign = 'left';
+                psCtx.fillText('极限 S = ' + limit.toFixed(3), pad.l + 6, ly - 6);
+            }
+
+            // Draw partial sum line
+            psCtx.strokeStyle = converges ? '#3b82f6' : '#ef4444';
+            psCtx.lineWidth = 2;
+            psCtx.beginPath();
+            for (let i = 0; i < partial.length; i++) {
+                const x = pad.l + (i / (N - 1)) * gw;
+                const y = pad.t + gh * (1 - partial[i] / maxVal);
+                if (i === 0) psCtx.moveTo(x, y);
+                else psCtx.lineTo(x, y);
+            }
+            psCtx.stroke();
+
+            // Draw points
+            for (let i = 0; i < partial.length; i += Math.ceil(N / 20)) {
+                const x = pad.l + (i / (N - 1)) * gw;
+                const y = pad.t + gh * (1 - partial[i] / maxVal);
+                psCtx.fillStyle = converges ? '#3b82f6' : '#ef4444';
+                psCtx.beginPath();
+                psCtx.arc(x, y, 3, 0, Math.PI * 2);
+                psCtx.fill();
+            }
+
+            // Legend
+            psCtx.fillStyle = converges ? '#10b981' : '#ef4444';
+            psCtx.font = 'bold 13px sans-serif';
+            psCtx.textAlign = 'right';
+            psCtx.fillText(converges ? '● 收敛' : '● 发散', w - 10, 20);
+        }
+
+        // ==========================================
+        // Geometric Series Lab
+        // ==========================================
+        const geoCanvas = $('geoCanvas');
+        const geoCtx = geoCanvas.getContext('2d');
+
+        function resizeGeo() {
+            const rect = geoCanvas.parentElement.getBoundingClientRect();
+            geoCanvas.width = rect.width - 32;
+            geoCanvas.height = 380;
+        }
+
+        function updateGeoLab() {
+            const a = parseFloat($('geoA').value);
+            const r = parseFloat($('geoR').value);
+            const N = parseInt($('geoN').value);
+
+            $('geoAVal').textContent = a.toFixed(1);
+            $('geoRVal').textContent = r.toFixed(2);
+            $('geoNVal').textContent = N;
+
+            const converges = Math.abs(r) < 1;
+            const status = $('geoStatus');
+            status.textContent = converges ? '收敛' : '发散';
+            status.className = 'status-badge ' + (converges ? 'status-converge' : 'status-diverge');
+
+            if (converges) {
+                const sum = a / (1 - r);
+                $('geoSum').innerHTML = `$S = \\frac{${a}}{1-${r.toFixed(2)}} = ${sum.toFixed(4)}$`;
+            } else {
+                $('geoSum').innerHTML = '级数发散，无有限和';
+            }
+
+            // Calculate partial sum
+            let partial = 0;
+            for (let n = 0; n < N; n++) {
+                partial += a * Math.pow(r, n);
+            }
+            $('geoPartial').textContent = `S_${N} = ${partial.toFixed(4)}`;
+
+            // Re-render MathJax for this panel
+            if (window.MathJax && MathJax.typesetPromise) {
+                MathJax.typesetPromise([$('geoSum').parentElement]);
+            }
+
+            // Draw
+            resizeGeo();
+            const w = geoCanvas.width, h = geoCanvas.height;
+            geoCtx.clearRect(0, 0, w, h);
+
+            const pad = { l: 50, r: 20, t: 30, b: 60 };
+            const gw = w - pad.l - pad.r;
+            const gh = h - pad.t - pad.b;
+
+            // Compute data
+            const terms = [];
+            const partials = [];
+            let psum = 0;
+            let maxTerm = 0;
+            for (let n = 0; n < N; n++) {
+                const term = a * Math.pow(r, n);
+                terms.push(term);
+                psum += term;
+                partials.push(psum);
+                maxTerm = Math.max(maxTerm, Math.abs(term));
+            }
+            const maxVal = Math.max(...partials.map(Math.abs), converges ? Math.abs(a / (1 - r)) : 0) * 1.2;
+
+            // Draw bars for terms
+            const barW = Math.max(2, (gw / N) - 1);
+            for (let n = 0; n < N; n++) {
+                const barH = (Math.abs(terms[n]) / maxVal) * gh * 0.5;
+                const x = pad.l + (n / N) * gw;
+                const y = pad.t + gh * 0.5 - (terms[n] >= 0 ? barH : 0);
+                geoCtx.fillStyle = terms[n] >= 0 ? 'rgba(59, 130, 246, 0.6)' : 'rgba(239, 68, 68, 0.6)';
+                geoCtx.fillRect(x, y, barW, barH);
+            }
+
+            // Zero line
+            geoCtx.strokeStyle = 'rgba(148, 163, 184, 0.3)';
+            geoCtx.beginPath();
+            geoCtx.moveTo(pad.l, pad.t + gh * 0.5);
+            geoCtx.lineTo(pad.l + gw, pad.t + gh * 0.5);
+            geoCtx.stroke();
+
+            // Partial sum line (lower half)
+            const baseY = pad.t + gh * 0.75;
+            const scaleY = (gh * 0.25) / (maxVal || 1);
+            geoCtx.strokeStyle = converges ? '#10b981' : '#ef4444';
+            geoCtx.lineWidth = 2;
+            geoCtx.beginPath();
+            for (let n = 0; n < N; n++) {
+                const x = pad.l + ((n + 0.5) / N) * gw;
+                const y = baseY - partials[n] * scaleY;
+                if (n === 0) geoCtx.moveTo(x, y);
+                else geoCtx.lineTo(x, y);
+            }
+            geoCtx.stroke();
+
+            // Limit line
+            if (converges) {
+                const sum = a / (1 - r);
+                const ly = baseY - sum * scaleY;
+                geoCtx.strokeStyle = 'rgba(16, 185, 129, 0.5)';
+                geoCtx.setLineDash([4, 4]);
+                geoCtx.beginPath();
+                geoCtx.moveTo(pad.l, ly);
+                geoCtx.lineTo(pad.l + gw, ly);
+                geoCtx.stroke();
+                geoCtx.setLineDash([]);
+            }
+
+            // Labels
+            geoCtx.fillStyle = 'rgba(148, 163, 184, 0.7)';
+            geoCtx.font = '11px sans-serif';
+            geoCtx.textAlign = 'center';
+            geoCtx.fillText('各项 a_n (上) 与 部分和 S_N (下)', pad.l + gw / 2, h - 12);
+
+            // Y axis labels
+            geoCtx.textAlign = 'right';
+            geoCtx.fillText(maxVal.toFixed(1), pad.l - 8, pad.t + 10);
+            geoCtx.fillText('0', pad.l - 8, baseY + 4);
+        }
+
+        // ==========================================
+        // P-Series Lab
+        // ==========================================
+        const pCanvas = $('pCanvas');
+        const pCtx = pCanvas.getContext('2d');
+
+        function resizeP() {
+            const rect = pCanvas.parentElement.getBoundingClientRect();
+            pCanvas.width = rect.width - 32;
+            pCanvas.height = 380;
+        }
+
+        function updatePLab() {
+            const p = parseFloat($('pVal').value);
+            const N = parseInt($('pN').value);
+
+            $('pDisplay').textContent = p.toFixed(1);
+            $('pNVal').textContent = N;
+
+            const converges = p > 1;
+            const status = $('pStatus');
+            status.textContent = converges ? `收敛 (p > 1)` : `发散 (p ≤ 1)`;
+            status.className = 'status-badge ' + (converges ? 'status-converge' : 'status-diverge');
+
+            $('pInfoConverge').style.display = converges ? 'block' : 'none';
+            $('pInfoDiverge').style.display = converges ? 'none' : 'block';
+
+            const pBar = $('pBar');
+            const pBarVal = $('pBarVal');
+            if (converges) {
+                const pct = Math.min(100, (p - 1) / 2 * 100 + 30);
+                pBar.style.width = pct + '%';
+                pBar.style.background = 'var(--accent-converge)';
+                pBarVal.textContent = '收敛';
+                pBarVal.style.color = 'var(--accent-converge)';
+            } else {
+                pBar.style.width = Math.min(100, (1 - p) * 50 + 50) + '%';
+                pBar.style.background = 'var(--accent-diverge)';
+                pBarVal.textContent = '发散';
+                pBarVal.style.color = 'var(--accent-diverge)';
+            }
+
+            // Draw
+            resizeP();
+            const w = pCanvas.width, h = pCanvas.height;
+            pCtx.clearRect(0, 0, w, h);
+
+            const pad = { l: 50, r: 20, t: 30, b: 50 };
+            const gw = w - pad.l - pad.r;
+            const gh = h - pad.t - pad.b;
+            const midY = pad.t + gh * 0.5;
+
+            // Compute data
+            const terms = [];
+            const partials = [];
+            let psum = 0;
+            for (let n = 1; n <= N; n++) {
+                const t = 1 / Math.pow(n, p);
+                terms.push(t);
+                psum += t;
+                partials.push(psum);
+            }
+
+            // Scale for terms (upper half)
+            const maxTerm = terms[0];
+            // Scale for partials (lower half)
+            const maxPartial = partials[partials.length - 1];
+            const partialLimit = converges ? partials[partials.length - 1] * 1.2 : maxPartial * 1.1;
+
+            // Upper: term curve
+            pCtx.strokeStyle = 'rgba(59, 130, 246, 0.8)';
+            pCtx.lineWidth = 2;
+            pCtx.beginPath();
+            for (let n = 0; n < N; n++) {
+                const x = pad.l + (n / (N - 1)) * gw;
+                const y = pad.t + (1 - terms[n] / maxTerm) * (gh * 0.45);
+                if (n === 0) pCtx.moveTo(x, y);
+                else pCtx.lineTo(x, y);
+            }
+            pCtx.stroke();
+
+            // Fill under curve
+            pCtx.fillStyle = 'rgba(59, 130, 246, 0.1)';
+            pCtx.lineTo(pad.l + gw, midY);
+            pCtx.lineTo(pad.l, midY);
+            pCtx.closePath();
+            pCtx.fill();
+
+            // Divider
+            pCtx.strokeStyle = 'rgba(148, 163, 184, 0.2)';
+            pCtx.setLineDash([4, 4]);
+            pCtx.beginPath();
+            pCtx.moveTo(pad.l, midY);
+            pCtx.lineTo(pad.l + gw, midY);
+            pCtx.stroke();
+            pCtx.setLineDash([]);
+
+            // Lower: partial sum
+            const lowerBase = midY + 10;
+            const lowerH = h - pad.b - lowerBase;
+            pCtx.strokeStyle = converges ? '#10b981' : '#ef4444';
+            pCtx.lineWidth = 2;
+            pCtx.beginPath();
+            for (let n = 0; n < N; n++) {
+                const x = pad.l + (n / (N - 1)) * gw;
+                const y = lowerBase + lowerH * (1 - partials[n] / partialLimit);
+                if (n === 0) pCtx.moveTo(x, y);
+                else pCtx.lineTo(x, y);
+            }
+            pCtx.stroke();
+
+            // If converges, show asymptote
+            if (converges) {
+                const known = p === 2 ? Math.PI * Math.PI / 6 : null;
+                const est = partials[N - 1];
+                const ly = lowerBase + lowerH * (1 - (known || est) / partialLimit);
+                pCtx.strokeStyle = 'rgba(16, 185, 129, 0.4)';
+                pCtx.setLineDash([4, 4]);
+                pCtx.beginPath();
+                pCtx.moveTo(pad.l, ly);
+                pCtx.lineTo(pad.l + gw, ly);
+                pCtx.stroke();
+                pCtx.setLineDash([]);
+            }
+
+            // Labels
+            pCtx.fillStyle = 'rgba(148, 163, 184, 0.6)';
+            pCtx.font = '11px sans-serif';
+            pCtx.textAlign = 'right';
+            pCtx.fillText('a_n', pad.l - 6, pad.t + 10);
+            pCtx.fillText('S_N', pad.l - 6, lowerBase + 10);
+            pCtx.textAlign = 'center';
+            pCtx.fillText('n', pad.l + gw / 2, h - 12);
+        }
+
+        // ==========================================
+        // Alternating Series Lab
+        // ==========================================
+        const altCanvas = $('altCanvas');
+        const altCtx = altCanvas.getContext('2d');
+        let altType = 'harmonic';
+
+        function resizeAlt() {
+            const rect = altCanvas.parentElement.getBoundingClientRect();
+            altCanvas.width = rect.width - 32;
+            altCanvas.height = 380;
+        }
+
+        function setAltType(type) {
+            altType = type;
+            ['btnAlt1', 'btnAlt2', 'btnAlt3'].forEach((id, i) => {
+                const btn = $(id);
+                const types = ['harmonic', 'geometric', 'custom'];
+                const isActive = types[i] === type;
+                btn.className = isActive ? 'btn btn-primary' : 'btn btn-outline';
+            });
+            $('altCustomControls').style.display = type === 'custom' ? 'block' : 'none';
+            updateAltLab();
+        }
+
+        function updateAltLab() {
+            const N = parseInt($('altN').value);
+            const k = parseFloat($('altK').value);
+            $('altNVal').textContent = N;
+            $('altKVal').textContent = k.toFixed(1);
+
+            // Generate sequence
+            const b = [];
+            const partials = [];
+            let psum = 0;
+            let converges = true;
+
+            for (let n = 1; n <= N + 5; n++) {
+                let bn;
+                if (altType === 'harmonic') bn = 1 / n;
+                else if (altType === 'geometric') bn = 1 / Math.pow(2, n);
+                else bn = 1 / Math.pow(n, k);
+                b.push(bn);
+            }
+
+            // Check Leibniz
+            let monotonic = true;
+            for (let i = 0; i < Math.min(b.length - 1, 30); i++) {
+                if (b[i] < b[i + 1] - 1e-10) monotonic = false;
+            }
+            // For known types, trust the theoretical result; for custom, check if trend goes to 0
+            let limitZero = true;
+            if (altType === 'custom') {
+                limitZero = b[b.length - 1] < 0.01;
+            }
+            const satisfiesLeibniz = monotonic && limitZero;
+
+            const status = $('altStatus');
+            if (satisfiesLeibniz) {
+                status.textContent = '满足莱布尼茨条件 · 收敛';
+                status.className = 'status-badge status-converge';
+            } else if (!monotonic) {
+                status.textContent = '不满足单调性 · 无法判定';
+                status.className = 'status-badge status-diverge';
+            } else {
+                status.textContent = '通项未明显趋于0 · 需进一步分析';
+                status.className = 'status-badge status-diverge';
+            }
+
+            for (let n = 1; n <= N; n++) {
+                const term = ((n % 2 === 1) ? 1 : -1) * b[n - 1];
+                psum += term;
+                partials.push(psum);
+            }
+
+            // Estimate limit as average of last two partials
+            const estLimit = (partials[N - 2] + partials[N - 1]) / 2;
+            const errorBound = b[N]; // |R_N| <= b_{N+1}
+
+            $('altError').innerHTML = `$|R_{${N}}| \\leq b_{${N + 1}} \\approx ${errorBound.toFixed(4)}$`;
+            $('altBound').innerHTML = `$S_{${N}} \\approx ${partials[N - 1].toFixed(4)}$，真实值在 $${partials[N - 1].toFixed(4)} \\pm ${errorBound.toFixed(4)}$ 内`;
+            if (window.MathJax && MathJax.typesetPromise) {
+                MathJax.typesetPromise([$('altError').parentElement, $('altBound').parentElement]);
+            }
+
+            // Draw
+            resizeAlt();
+            const w = altCanvas.width, h = altCanvas.height;
+            altCtx.clearRect(0, 0, w, h);
+
+            const pad = { l: 50, r: 20, t: 30, b: 50 };
+            const gw = w - pad.l - pad.r;
+            const gh = h - pad.t - pad.b;
+
+            // Determine range
+            const allVals = [...partials, estLimit, estLimit + errorBound, estLimit - errorBound];
+            const minV = Math.min(...allVals) * 1.1;
+            const maxV = Math.max(...allVals) * 1.1;
+            const range = maxV - minV || 1;
+
+            // Error band
+            const yBandTop = pad.t + gh * (1 - (estLimit + errorBound - minV) / range);
+            const yBandBot = pad.t + gh * (1 - (estLimit - errorBound - minV) / range);
+            altCtx.fillStyle = 'rgba(16, 185, 129, 0.12)';
+            altCtx.fillRect(pad.l, yBandTop, gw, yBandBot - yBandTop);
+
+            // Limit line
+            const yLimit = pad.t + gh * (1 - (estLimit - minV) / range);
+            altCtx.strokeStyle = 'rgba(240, 244, 248, 0.4)';
+            altCtx.setLineDash([6, 4]);
+            altCtx.beginPath();
+            altCtx.moveTo(pad.l, yLimit);
+            altCtx.lineTo(pad.l + gw, yLimit);
+            altCtx.stroke();
+            altCtx.setLineDash([]);
+
+            // Partial sum line
+            altCtx.strokeStyle = '#3b82f6';
+            altCtx.lineWidth = 2;
+            altCtx.beginPath();
+            for (let n = 0; n < N; n++) {
+                const x = pad.l + (n / (N - 1)) * gw;
+                const y = pad.t + gh * (1 - (partials[n] - minV) / range);
+                if (n === 0) altCtx.moveTo(x, y);
+                else altCtx.lineTo(x, y);
+            }
+            altCtx.stroke();
+
+            // Points with color coding
+            for (let n = 0; n < N; n += Math.max(1, Math.floor(N / 25))) {
+                const x = pad.l + (n / (N - 1)) * gw;
+                const y = pad.t + gh * (1 - (partials[n] - minV) / range);
+                altCtx.fillStyle = (n % 2 === 0) ? '#10b981' : '#f59e0b';
+                altCtx.beginPath();
+                altCtx.arc(x, y, 4, 0, Math.PI * 2);
+                altCtx.fill();
+            }
+
+            // Labels
+            altCtx.fillStyle = 'rgba(148, 163, 184, 0.6)';
+            altCtx.font = '11px sans-serif';
+            altCtx.textAlign = 'right';
+            altCtx.fillText(maxV.toFixed(2), pad.l - 8, pad.t + 10);
+            altCtx.fillText(minV.toFixed(2), pad.l - 8, pad.t + gh);
+            altCtx.textAlign = 'center';
+            altCtx.fillText('n', pad.l + gw / 2, h - 12);
+        }
+
+        // ==========================================
+        // Test Demos
+        // ==========================================
+        const testCanvas = $('testCanvas');
+        const testCtx = testCanvas.getContext('2d');
+
+        function resizeTest() {
+            const rect = testCanvas.parentElement.getBoundingClientRect();
+            testCanvas.width = rect.width - 64;
+            testCanvas.height = 350;
+        }
+
+        function showComparisonDemo() {
+            $('testDemoCard').style.display = 'block';
+            $('testDemoTitle').innerHTML = '比较判别法演示：$\\sum \\frac{1}{n^2+1}$ 与 $\\sum \\frac{1}{n^2}$';
+            $('testDemoDesc').innerHTML = '蓝色条 = a_n，青色条 = b_n。注意所有蓝色条都短于青色条，且已知 $\\sum b_n$ 收敛（p=2 的 p-级数）';
+            if (window.MathJax && MathJax.typesetPromise) {
+                MathJax.typesetPromise([$('testDemoTitle'), $('testDemoDesc')]);
+            }
+            resizeTest();
+            const w = testCanvas.width, h = testCanvas.height;
+            testCtx.clearRect(0, 0, w, h);
+
+            const pad = { l: 50, r: 20, t: 40, b: 50 };
+            const gw = w - pad.l - pad.r;
+            const gh = h - pad.t - pad.b;
+            const N = 20;
+
+            for (let n = 1; n <= N; n++) {
+                const a = 1 / (n * n + 1);
+                const b = 1 / (n * n);
+                const x = pad.l + ((n - 1) / N) * gw;
+                const barW = (gw / N) - 2;
+                const scale = gh / 1.2;
+
+                // b_n bar (background)
+                testCtx.fillStyle = 'rgba(16, 185, 129, 0.3)';
+                testCtx.fillRect(x, pad.t + gh - b * scale, barW, b * scale);
+
+                // a_n bar (foreground)
+                testCtx.fillStyle = 'rgba(59, 130, 246, 0.7)';
+                testCtx.fillRect(x + 2, pad.t + gh - a * scale, barW - 4, a * scale);
+            }
+
+            // Legend
+            testCtx.fillStyle = 'rgba(59, 130, 246, 0.7)';
+            testCtx.fillRect(pad.l + 10, pad.t - 25, 14, 14);
+            testCtx.fillStyle = '#94a3b8';
+            testCtx.font = '12px sans-serif';
+            testCtx.textAlign = 'left';
+            testCtx.fillText('a_n = 1/(n²+1)', pad.l + 30, pad.t - 14);
+            testCtx.fillStyle = 'rgba(16, 185, 129, 0.5)';
+            testCtx.fillRect(pad.l + 160, pad.t - 25, 14, 14);
+            testCtx.fillStyle = '#94a3b8';
+            testCtx.fillText('b_n = 1/n²', pad.l + 180, pad.t - 14);
+
+            // Axis
+            testCtx.strokeStyle = 'rgba(148, 163, 184, 0.3)';
+            testCtx.beginPath();
+            testCtx.moveTo(pad.l, pad.t + gh);
+            testCtx.lineTo(pad.l + gw, pad.t + gh);
+            testCtx.stroke();
+            testCtx.fillStyle = '#94a3b8';
+            testCtx.textAlign = 'center';
+            testCtx.fillText('n', pad.l + gw / 2, h - 12);
+
+            // Conclusion
+            testCtx.fillStyle = '#10b981';
+            testCtx.font = 'bold 14px sans-serif';
+            testCtx.textAlign = 'center';
+            testCtx.fillText('结论：0 ≤ a_n ≤ b_n 且 Σb_n 收敛 ⇒ Σa_n 收敛', w / 2, 24);
+        }
+
+        function showRatioDemo() {
+            $('testDemoCard').style.display = 'block';
+            $('testDemoTitle').innerHTML = '比值判别法演示：$\\sum \\frac{2^n}{n!}$';
+            $('testDemoDesc').innerHTML = '计算 $L = \\lim |a_{n+1}/a_n| = \\lim 2/(n+1) = 0 &lt; 1$，因此级数收敛。';
+            if (window.MathJax && MathJax.typesetPromise) {
+                MathJax.typesetPromise([$('testDemoTitle'), $('testDemoDesc')]);
+            }
+            resizeTest();
+            const w = testCanvas.width, h = testCanvas.height;
+            testCtx.clearRect(0, 0, w, h);
+
+            const pad = { l: 50, r: 20, t: 40, b: 50 };
+            const gw = w - pad.l - pad.r;
+            const gh = h - pad.t - pad.b;
+            const N = 15;
+
+            const ratios = [];
+            for (let n = 1; n <= N; n++) {
+                const a_n = Math.pow(2, n) / factorial(n);
+                const a_np1 = Math.pow(2, n + 1) / factorial(n + 1);
+                ratios.push(a_np1 / a_n);
+            }
+
+            // Draw ratio bars
+            const maxR = Math.max(...ratios, 1);
+            for (let n = 0; n < N; n++) {
+                const x = pad.l + (n / N) * gw;
+                const barW = (gw / N) - 3;
+                const barH = (ratios[n] / maxR) * gh;
+                testCtx.fillStyle = 'rgba(59, 130, 246, 0.7)';
+                testCtx.fillRect(x, pad.t + gh - barH, barW, barH);
+
+                // Value label
+                testCtx.fillStyle = '#94a3b8';
+                testCtx.font = '10px sans-serif';
+                testCtx.textAlign = 'center';
+                testCtx.fillText(ratios[n].toFixed(2), x + barW / 2, pad.t + gh - barH - 4);
+            }
+
+            // L = 1 line
+            const y1 = pad.t + gh - (1 / maxR) * gh;
+            testCtx.strokeStyle = 'rgba(239, 68, 68, 0.5)';
+            testCtx.setLineDash([4, 4]);
+            testCtx.beginPath();
+            testCtx.moveTo(pad.l, y1);
+            testCtx.lineTo(pad.l + gw, y1);
+            testCtx.stroke();
+            testCtx.setLineDash([]);
+            testCtx.fillStyle = '#ef4444';
+            testCtx.font = '11px sans-serif';
+            testCtx.textAlign = 'left';
+            testCtx.fillText('L = 1 (临界值)', pad.l + 6, y1 - 4);
+
+            // Zero line asymptote
+            const y0 = pad.t + gh;
+            testCtx.strokeStyle = 'rgba(16, 185, 129, 0.5)';
+            testCtx.setLineDash([4, 4]);
+            testCtx.beginPath();
+            testCtx.moveTo(pad.l, y0);
+            testCtx.lineTo(pad.l + gw, y0);
+            testCtx.stroke();
+            testCtx.setLineDash([]);
+            testCtx.fillStyle = '#10b981';
+            testCtx.fillText('L = 0 (极限)', pad.l + 6, y0 - 4);
+
+            // X labels
+            testCtx.fillStyle = '#94a3b8';
+            for (let n = 0; n < N; n += 2) {
+                const x = pad.l + (n / N) * gw;
+                testCtx.textAlign = 'center';
+                testCtx.fillText((n + 1).toString(), x + (gw / N - 3) / 2, h - 12);
+            }
+            testCtx.fillText('n', pad.l + gw / 2, h - 4);
+
+            // Conclusion
+            testCtx.fillStyle = '#10b981';
+            testCtx.font = 'bold 14px sans-serif';
+            testCtx.textAlign = 'center';
+            testCtx.fillText('L = 0 < 1 ⇒ 级数收敛', w / 2, 24);
+        }
+
+        function showRootDemo() {
+            $('testDemoCard').style.display = 'block';
+            $('testDemoTitle').innerHTML = '根值判别法演示：$\\sum \\left(\\frac{n}{2n+1}\\right)^n$';
+            $('testDemoDesc').innerHTML = '计算 $L = \\lim \\sqrt[n]{|a_n|} = \\lim \\frac{n}{2n+1} = \\frac{1}{2} &lt; 1$，因此级数收敛。';
+            if (window.MathJax && MathJax.typesetPromise) {
+                MathJax.typesetPromise([$('testDemoTitle'), $('testDemoDesc')]);
+            }
+            resizeTest();
+            const w = testCanvas.width, h = testCanvas.height;
+            testCtx.clearRect(0, 0, w, h);
+
+            const pad = { l: 50, r: 20, t: 40, b: 50 };
+            const gw = w - pad.l - pad.r;
+            const gh = h - pad.t - pad.b;
+            const N = 20;
+
+            const roots = [];
+            for (let n = 1; n <= N; n++) {
+                const a_n = Math.pow(n / (2 * n + 1), n);
+                roots.push(Math.pow(a_n, 1 / n)); // = n/(2n+1)
+            }
+
+            // Draw
+            for (let n = 0; n < N; n++) {
+                const x = pad.l + (n / N) * gw;
+                const barW = (gw / N) - 3;
+                const barH = (roots[n] / 0.6) * gh;
+                testCtx.fillStyle = 'rgba(245, 158, 11, 0.7)';
+                testCtx.fillRect(x, pad.t + gh - barH, barW, barH);
+            }
+
+            // L = 0.5 line
+            const yHalf = pad.t + gh - (0.5 / 0.6) * gh;
+            testCtx.strokeStyle = 'rgba(16, 185, 129, 0.6)';
+            testCtx.setLineDash([4, 4]);
+            testCtx.beginPath();
+            testCtx.moveTo(pad.l, yHalf);
+            testCtx.lineTo(pad.l + gw, yHalf);
+            testCtx.stroke();
+            testCtx.setLineDash([]);
+            testCtx.fillStyle = '#10b981';
+            testCtx.font = '11px sans-serif';
+            testCtx.textAlign = 'left';
+            testCtx.fillText('L = 1/2 (极限)', pad.l + 6, yHalf - 4);
+
+            // L = 1 line
+            const yOne = pad.t + gh - (1 / 0.6) * gh;
+            testCtx.strokeStyle = 'rgba(239, 68, 68, 0.4)';
+            testCtx.setLineDash([4, 4]);
+            testCtx.beginPath();
+            testCtx.moveTo(pad.l, yOne);
+            testCtx.lineTo(pad.l + gw, yOne);
+            testCtx.stroke();
+            testCtx.setLineDash([]);
+
+            // X labels
+            testCtx.fillStyle = '#94a3b8';
+            testCtx.font = '11px sans-serif';
+            for (let n = 0; n < N; n += 3) {
+                const x = pad.l + (n / N) * gw;
+                testCtx.textAlign = 'center';
+                testCtx.fillText((n + 1).toString(), x + (gw / N - 3) / 2, h - 12);
+            }
+            testCtx.fillText('n', pad.l + gw / 2, h - 4);
+
+            // Conclusion
+            testCtx.fillStyle = '#10b981';
+            testCtx.font = 'bold 14px sans-serif';
+            testCtx.textAlign = 'center';
+            testCtx.fillText('L = 1/2 < 1 ⇒ 级数收敛', w / 2, 24);
+        }
+
+        function factorial(n) {
+            let res = 1;
+            for (let i = 2; i <= n; i++) res *= i;
+            return res;
+        }
+
+        // ==========================================
+        // Quiz System
+        // ==========================================
+        const quizData = [
+            {
+                q: '级数 $\\sum_{n=1}^{\\infty} a_n$ 收敛的必要条件是：',
+                options: [
+                    '$\\lim_{n\\to\\infty} a_n = 0$',
+                    '$\\lim_{n\\to\\infty} a_n$ 存在',
+                    '$a_n > 0$ 对所有 $n$ 成立',
+                    '$\\sum |a_n|$ 收敛'
+                ],
+                correct: 0
+            },
+            {
+                q: '几何级数 $\\sum_{n=0}^{\\infty} \\left(-\\frac{2}{3}\\right)^n$ 的和为：',
+                options: ['$\\frac{2}{5}$', '$\\frac{3}{5}$', '$\\frac{5}{3}$', '发散'],
+                correct: 1
+            },
+            {
+                q: 'p-级数 $\\sum \\frac{1}{n^p}$ 发散的情况是：',
+                options: ['$p > 1$', '$p < 1$', '$p \\leq 1$', '$p = 2$'],
+                correct: 2
+            },
+            {
+                q: '交错级数 $\\sum (-1)^{n+1} \\frac{1}{n}$ 的收敛性：',
+                options: ['绝对收敛', '条件收敛', '发散', '不确定'],
+                correct: 1
+            },
+            {
+                q: '使用比值判别法时，若 $\\lim |a_{n+1}/a_n| = 1$，则：',
+                options: ['级数收敛', '级数发散', '判别法失效', '级数绝对收敛'],
+                correct: 2
+            },
+            {
+                q: '级数 $\\sum \\frac{n}{2n+1}$ 的收敛性：',
+                options: ['收敛', '发散', '条件收敛', '不确定'],
+                correct: 1
+            },
+            {
+                q: '$\\sum \\frac{1}{n^2+1}$ 与哪个级数比较可判断其收敛？',
+                options: ['$\\sum \\frac{1}{n}$', '$\\sum \\frac{1}{n^2}$', '$\\sum \\frac{1}{\\sqrt{n}}$', '$\\sum \\frac{n}{n+1}$'],
+                correct: 1
+            },
+            {
+                q: '若 $\\sum |a_n|$ 收敛，则 $\\sum a_n$ 必：',
+                options: ['条件收敛', '绝对收敛', '发散', '振荡'],
+                correct: 1
+            }
+        ];
+
+        function renderQuiz() {
+            const container = $('quizContainer');
+            container.innerHTML = '';
+            quizData.forEach((item, idx) => {
+                const div = document.createElement('div');
+                div.className = 'quiz-question animate-in';
+                div.innerHTML = `
+                    <h4><span style="color: var(--accent-primary); margin-right: 8px;">${idx + 1}.</span>${item.q}</h4>
+                    <div class="quiz-options" id="q${idx}">
+                        ${item.options.map((opt, i) => `
+                            <div class="quiz-option" onclick="selectOption(${idx}, ${i})" id="q${idx}o${i}">
+                                <span class="opt-letter">${String.fromCharCode(65 + i)}</span>
+                                <span>${opt}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        let selections = new Array(quizData.length).fill(-1);
+
+        function selectOption(qIdx, oIdx) {
+            if ($('submitQuiz').style.display === 'none') return; // already submitted
+            selections[qIdx] = oIdx;
+            const opts = document.querySelectorAll(`#q${qIdx} .quiz-option`);
+            opts.forEach((opt, i) => {
+                opt.classList.toggle('selected', i === oIdx);
+            });
+        }
+
+        function submitQuiz() {
+            let correct = 0;
+            selections.forEach((sel, idx) => {
+                const opts = document.querySelectorAll(`#q${idx} .quiz-option`);
+                opts.forEach((opt, i) => {
+                    opt.classList.remove('selected');
+                    if (i === quizData[idx].correct) {
+                        opt.classList.add('correct');
+                    } else if (i === sel && sel !== quizData[idx].correct) {
+                        opt.classList.add('wrong');
+                    }
+                    opt.style.cursor = 'default';
+                });
+                if (sel === quizData[idx].correct) correct++;
+            });
+
+            const pct = Math.round((correct / quizData.length) * 100);
+            const scoreEl = $('resultScore');
+            const msgEl = $('resultMessage');
+
+            scoreEl.textContent = `${correct} / ${quizData.length}`;
+            scoreEl.style.color = pct >= 80 ? '#10b981' : pct >= 60 ? '#f59e0b' : '#ef4444';
+
+            if (pct >= 90) msgEl.textContent = '太棒了！你对级数收敛性有深刻的理解 🎉';
+            else if (pct >= 75) msgEl.textContent = '很好！继续巩固判别法的应用 💪';
+            else if (pct >= 60) msgEl.textContent = '基本掌握，建议重点复习错题 📚';
+            else msgEl.textContent = '需要加强基础概念的理解，建议重新学习核心内容 🔍';
+
+            $('quizResult').classList.add('show');
+            $('submitQuiz').style.display = 'none';
+            $('retryQuiz').style.display = 'inline-flex';
+
+            // Scroll to result
+            $('quizResult').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        function retryQuiz() {
+            selections = new Array(quizData.length).fill(-1);
+            $('quizResult').classList.remove('show');
+            $('submitQuiz').style.display = 'inline-flex';
+            $('retryQuiz').style.display = 'none';
+            renderQuiz();
+        }
+
+        // ==========================================
+        // Intersection Observer for Animations
+        // ==========================================
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.animate-in').forEach(el => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(30px)';
+            el.style.transition = 'opacity 0.8s ease, transform 0.8s ease';
+            observer.observe(el);
+        });
+
+        // ==========================================
+        // Initialization
+        // ==========================================
+        window.addEventListener('load', () => {
+            drawPartialSum('geometric');
+            updateGeoLab();
+            updatePLab();
+            updateAltLab();
+            renderQuiz();
+
+            // Re-render MathJax
+            if (window.MathJax && MathJax.typesetPromise) {
+                MathJax.typesetPromise();
+            }
+        });
+
+        window.addEventListener('resize', () => {
+            drawPartialSum(psType);
+            updateGeoLab();
+            updatePLab();
+            updateAltLab();
+            if ($('testDemoCard').style.display !== 'none') {
+                resizeTest();
+            }
+        });
+    </script>
+</body>
+</html>
